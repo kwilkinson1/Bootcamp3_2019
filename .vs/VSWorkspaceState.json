@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Bootcamp3",
+    "\\Bootcamp3\\client",
+    "\\Bootcamp3\\server",
+    "\\Bootcamp3\\server\\config",
+    "\\Bootcamp3\\server\\controllers",
+    "\\Bootcamp3\\server\\models",
+    "\\Bootcamp3\\server\\routes"
+  ],
+  "SelectedNode": "\\Bootcamp3\\server\\controllers\\coordinates.server.controller.js",
+  "PreviewInSolutionExplorer": false
+}

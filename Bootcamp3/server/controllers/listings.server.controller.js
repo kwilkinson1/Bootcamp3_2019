@@ -3,6 +3,18 @@
 var mongoose = require('mongoose'), 
     Listing = require('../models/listings.server.model.js'),
     coordinates = require('./coordinates.server.controller.js');
+
+const config = require('../config/config');
+
+/* Connect to your database using mongoose - remember to keep your key secret*/
+
+mongoose.connect(config.db.uri, {useNewUrlParser: true,  useUnifiedTopology: true });
+
+var db = mongoose.connection;
+
+db.once("open", () =>{
+  console.log("Connection successful!");
+});
     
 /*
   In this file, you should use Mongoose queries in order to retrieve/add/remove/update listings.
@@ -29,53 +41,105 @@ exports.create = function(req, res) {
 
   /* save the coordinates (located in req.results if there is an address property) */
   if(req.results) {
-    listing.coordinates = {
-      latitude: req.results.lat, 
-      longitude: req.results.lng
-    };
-  }
+    
+  console.log('request results');
+  console.log(req.results);
+  let newLat = Number(req.results.lat);
+  let newLng = Number(req.results.lng);
+    listing.coordinates = {"latitude": newLat, "longitude": newLng};
+    }
  
   /* Then save the listing */
   listing.save(function(err) {
     if(err) {
       console.log(err);
       res.status(400).send(err);
-    } else {
+    } 
       res.json(listing);
-      console.log(listing)
-    }
+      //console.log(doc)
+    
   });
 };
 
 /* Show the current listing */
+
+//*************************************************************************************//
+// This function takes the listing request and parses it into JSON to use in the 'update' 
+// function
+//*************************************************************************************//
+
 exports.read = function(req, res) {
   /* send back the listing as json from the request */
   res.json(req.listing);
 };
 
 /* Update a listing - note the order in which this function is called by the router*/
+
+//*************************************************************************************//
+// This function needs to take the JSON data previously parsed, save coordinates based on
+// its address, and then push the listing to the MongoDB
+//*************************************************************************************//
+
 exports.update = function(req, res) {
   var listing = req.listing;
 
   /* Replace the listings's properties with the new properties found in req.body */
+  var data = req.body;
  
   /*save the coordinates (located in req.results if there is an address property) */
- 
+  if(req.results) {
+    data.coordinates = {
+      latitude: req.results.lat, 
+      longitude: req.results.lng
+    };
+  }
   /* Save the listing */
+  Listing.findOneAndUpdate({"code": listing.code}, data, {new:true}, (err, updatedDoc)=>{
+    if(err){
+      console.log(err);
+    } else {
+      res.json(updatedDoc);
+    }
+  })
 
 };
 
 /* Delete a listing */
+
+//*************************************************************************************//
+// Similar to above, but will take JSON data and delete listing based on data provided
+//*************************************************************************************//
+
 exports.delete = function(req, res) {
   var listing = req.listing;
 
   /* Add your code to remove the listins */
+  Listing.findOneAndDelete({"code": listing.code}, (err, delDoc)=>{
+    if(err){
+      console.log(err);
+    }
+    console.log(delDoc.name + 'was removed');
+    res.json(delDoc);
+  })
 
 };
 
 /* Retreive all the directory listings, sorted alphabetically by listing code */
+
+//*************************************************************************************//
+// The list function does not require JSON input, it just returns all, as we did in 
+// Bootcamp 2
+//*************************************************************************************//
+
 exports.list = function(req, res) {
   /* Add your code */
+  Listing.find({}, (err, listings) => {
+    if (err) {
+      console.error(err.message);
+    }
+    res.json(listings);
+    db.close;
+  })
 };
 
 /* 
